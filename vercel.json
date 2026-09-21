@@ -1,11 +1,23 @@
 {
-  "headers": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/assets/models/(.*)",
-      "headers": [
-        { "key": "Content-Type", "value": "model/gltf-binary" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
+      "src": "**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/models/(.*)",
+      "headers": {
+        "Content-Type": "model/gltf-binary",
+        "Access-Control-Allow-Origin": "*"
+      },
+      "dest": "/assets/models/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
