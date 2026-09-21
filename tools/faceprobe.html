@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>face probe</title>
+<script type="importmap">
+{ "imports": { "three": "../node_modules/three/build/three.module.js", "three/addons/": "../node_modules/three/examples/jsm/" } }
+</script></head><body>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+const g = await new GLTFLoader().loadAsync("../assets/models/LeePerrySmith.glb");
+const geo = g.scene.getObjectByProperty("isMesh", true).geometry.toNonIndexed();
+geo.computeBoundingBox();
+const bb = geo.boundingBox, size = new THREE.Vector3(), ctr = new THREE.Vector3();
+bb.getSize(size); bb.getCenter(ctr);
+const p = geo.attributes.position;
+for (let i = 0; i < p.count; i++) {
+  p.setXYZ(i, (p.getX(i) - ctr.x) / size.y, (p.getY(i) - bb.min.y) / size.y, (p.getZ(i) - ctr.z) / size.y);
+}
+
+// for each y band on the centre line, the front-most z and how deep the
+// recesses behind it go — cavities show up as a big spread
+const rows = [];
+for (let y = 0.40; y <= 0.88; y += 0.02) {
+  const zs = [];
+  for (let i = 0; i < p.count; i++) {
+    const yy = p.getY(i);
+    if (Math.abs(yy - y) > 0.01) continue;
+    if (Math.abs(p.getX(i)) > 0.055) continue;      // centre strip
+    if (p.getZ(i) < 0) continue;                    // front half
+    zs.push(p.getZ(i));
+  }
+  if (!zs.length) continue;
+  zs.sort((a, b) => a - b);
+  rows.push({
+    y: +y.toFixed(2),
+    n: zs.length,
+    zMax: +zs[zs.length - 1].toFixed(3),
+    zMin: +zs[0].toFixed(3),
+    spread: +(zs[zs.length - 1] - zs[0]).toFixed(3),
+  });
+}
+window.__probe = rows;
+window.__ready = true;
+document.body.textContent = "ok";
+</script></body></html>

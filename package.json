@@ -1,0 +1,17 @@
+{
+  "name": "real-madrid-museum",
+  "version": "1.0.0",
+  "description": "Interactive 3D Real Madrid museum — Three.js / WebGL FPS experience",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "assets": "python tools/download_assets.py"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}

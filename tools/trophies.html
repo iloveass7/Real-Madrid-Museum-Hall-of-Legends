@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>trophy preview</title>
+<style>html,body{margin:0;background:#12151b;height:100%}canvas{display:block}</style>
+<script type="importmap">
+{ "imports": {
+  "three": "../node_modules/three/build/three.module.js",
+  "three/addons/": "../node_modules/three/examples/jsm/"
+} }
+</script></head><body>
+<script type="module">
+import * as THREE from "three";
+import { createEuropeanCup, createLaLigaTrophy, createCopaTrophy, createSupercopaTrophy } from "../src/world/trophies.js";
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x12151b);
+
+// small studio env so the silver reads as metal
+{
+  const env = new THREE.Scene();
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  const mk = (c, i, x, y, z, sx, sy, sz) => {
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c }));
+    m.material.color.multiplyScalar(i); m.position.set(x, y, z); m.scale.set(sx, sy, sz); env.add(m);
+  };
+  mk(0x9fb4d0, 1.2, 0, 0, -8, 16, 10, 1);
+  mk(0xfff1d0, 3.0, -4, 6, 2, 4, 0.4, 4);
+  mk(0xfff1d0, 2.4, 5, 6, -3, 4, 0.4, 4);
+  mk(0x667088, 1.6, 0, -6, 3, 10, 0.5, 4);
+  mk(0xffffff, 2.0, 0, 8, 0, 10, 0.4, 10);
+  const p = new THREE.PMREMGenerator(renderer);
+  scene.environment = p.fromScene(env, 0.06).texture;
+  p.dispose();
+}
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x2a2a30, 0.7));
+const k = new THREE.DirectionalLight(0xfff3e0, 2.2); k.position.set(-3, 6, 5); k.castShadow = true; scene.add(k);
+const f = new THREE.DirectionalLight(0xa9c6ff, 0.9); f.position.set(4, 2, -4); scene.add(f);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshStandardMaterial({ color: 0x2b2f38, roughness: .8 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+const all = [createEuropeanCup(1), createLaLigaTrophy(1), createCopaTrophy(1), createSupercopaTrophy(1)];
+all.forEach((t, i) => { t.position.set((i - 1.5) * 1.15, 0.1, 0); scene.add(t); });
+
+const cam = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.05, 40);
+const p = new URLSearchParams(location.search);
+const one = p.get("i");
+if (one !== null) {
+  all.forEach((t, i) => (t.visible = i === +one));
+  const t = all[+one];
+  cam.position.set(t.position.x + 0.15, 0.62, 1.85);
+  cam.lookAt(t.position.x, 0.52, 0);
+} else {
+  cam.position.set(0, 0.9, 3.6);
+  cam.lookAt(0, 0.5, 0);
+}
+renderer.render(scene, cam);
+window.__ready = true;
+</script></body></html>

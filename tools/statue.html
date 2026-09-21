@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>statue preview</title>
+<style>html,body{margin:0;background:#191d24;height:100%}canvas{display:block}</style>
+<script type="importmap">
+{ "imports": {
+  "three": "../node_modules/three/build/three.module.js",
+  "three/addons/": "../node_modules/three/examples/jsm/"
+} }
+</script></head><body>
+<script type="module">
+import * as THREE from "three";
+import { TextureLibrary } from "../src/world/textures.js";
+import { buildStatue } from "../src/world/statue.js";
+
+const p = new URLSearchParams(location.search);
+const view = p.get("v") || "full";      // full | head | back | side
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x191d24);
+const cam = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.05, 60);
+scene.add(new THREE.HemisphereLight(0xdde6ff, 0x2a2a30, 1.1));
+const key = new THREE.DirectionalLight(0xfff2dd, 2.4); key.position.set(-4, 7, 6);
+key.castShadow = true; scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fc0ff, 1.0); rim.position.set(5, 3, -5); scene.add(rim);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ color: 0x3a3f49, roughness: .9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+const lib = new TextureLibrary(renderer);
+await lib.init();
+const statue = buildStatue(lib, new THREE.Vector3(0, 0, 0));
+// preview faces +z instead of the museum's -x
+statue.group.rotation.y = 0;
+scene.add(statue.group);
+await new Promise(r => setTimeout(r, 1500));
+
+const VIEWS = {
+  full: [0, 2.3, 5.4, 0, 2.2, 0],
+  head: [0.30, 3.44, 1.05, 0, 3.40, 0],
+  face: [0.0, 3.42, 0.95, 0, 3.38, 0],
+  hair: [0.1, 3.80, 1.0, 0, 3.45, 0],
+  back: [0, 2.4, -5.0, 0, 2.2, 0],
+  side: [5.2, 2.4, 0.8, 0, 2.2, 0],
+  close: [0.6, 2.9, 3.0, 0, 2.7, 0],
+};
+const [cx, cy, cz, tx, ty, tz] = VIEWS[view] || VIEWS.full;
+cam.position.set(cx, cy, cz); cam.lookAt(tx, ty, tz);
+statue.update(0.4);
+renderer.render(scene, cam);
+window.__ready = true;
+</script></body></html>

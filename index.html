@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real Madrid Museum — Hall of Legends</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;circle cx='16' cy='16' r='15' fill='%23005296'/&gt;&lt;circle cx='16' cy='16' r='11' fill='white'/&gt;&lt;text x='16' y='21' font-size='11' text-anchor='middle' fill='%23005296' font-family='Arial' font-weight='bold'&gt;RM&lt;/text&gt;&lt;/svg&gt;" />
+  <script type="importmap">
+    { "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+      } }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <!-- In-museum HUD -->
+  <div id="hud" class="hidden">
+    <div id="crosshair"></div>
+    <div id="prompt" class="hidden"></div>
+    <div id="brand">
+      <span class="brand-crest">RM</span>
+      <span>REAL MADRID MUSEUM &mdash; HALL OF LEGENDS</span>
+    </div>
+    <button id="view-btn" type="button">Eagle eye &nbsp;(V)</button>
+    <div id="controls-hint">WASD / Arrows: move &nbsp;&middot;&nbsp; Mouse or drag: look &nbsp;&middot;&nbsp; E / Click: interact &nbsp;&middot;&nbsp; V: switch view &nbsp;&middot;&nbsp; Esc: release mouse</div>
+  </div>
+
+  <!-- Entry splash -->
+  <div id="splash">
+    <div class="splash-card">
+      <div class="splash-crest">RM</div>
+      <h1>REAL MADRID MUSEUM</h1>
+      <h2>Hall of Legends &mdash; Est. 1902</h2>
+      <p class="splash-desc">
+        Walk the gallery of the most decorated club in history.
+        Fifteen European Cups, a golden Ballon d&rsquo;Or legacy, and the
+        Santiago Bernab&eacute;u itself await inside.
+      </p>
+      <button id="enter-btn">CLICK TO ENTER</button>
+      <div class="splash-keys">
+        <span><b>W A S D</b> move</span>
+        <span><b>Mouse</b> look</span>
+        <span><b>E / Click</b> interact</span>
+        <span><b>V</b> eagle eye</span>
+        <span><b>&larr; &rarr;</b> turn pages</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Magazine overlay (populated by JS) -->
+  <div id="magazine" class="hidden">
+    <div class="mag-backdrop"></div>
+    <div class="mag-shell">
+      <div class="mag-header">
+        <div class="mag-kicker" id="mag-kicker"></div>
+        <div class="mag-title" id="mag-title"></div>
+        <button class="mag-close" id="mag-close" title="Close (E)">&times;</button>
+      </div>
+      <div class="mag-body">
+        <button class="mag-nav prev" id="mag-prev" title="Previous page">&lsaquo;</button>
+        <div class="mag-page" id="mag-page"></div>
+        <button class="mag-nav next" id="mag-next" title="Next page">&rsaquo;</button>
+      </div>
+      <div class="mag-footer">
+        <span id="mag-counter"></span>
+        <span class="mag-hint">&larr; &rarr; navigate &nbsp;&middot;&nbsp; E / click outside to close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Boot guard: plain (non-module) script, so it runs even if the module
+       graph fails to load. It keeps the entry button responsive and says what
+       went wrong instead of leaving a button that does nothing. -->
+  <script>
+    (function () {
+      var booted = false;
+      window.addEventListener("museum-ready", function () { booted = true; });
+
+      function fail(msg) {
+        if (booted) return;
+        var card = document.querySelector(".splash-card");
+        if (!card || document.getElementById("boot-error")) return;
+        var box = document.createElement("div");
+        box.id = "boot-error";
+        box.innerHTML =
+          "<b>The museum could not start.</b><br>" + msg +
+          "<br><br>Run it through the local server — <code>npm install</code> then " +
+          "<code>npm start</code> — and open <code>http://localhost:5173</code>. " +
+          "Opening index.html straight from the file system will not work, because " +
+          "browsers block ES modules and textures over <code>file://</code>.";
+        card.appendChild(box);
+      }
+
+      window.addEventListener("error", function (e) {
+        if (e.target && (e.target.tagName === "SCRIPT" || e.target.tagName === "LINK")) {
+          fail("A file failed to load: <code>" + (e.target.src || e.target.href) + "</code>");
+        } else if (e.message) {
+          fail("<code>" + e.message + "</code>");
+        }
+      }, true);
+      window.addEventListener("unhandledrejection", function (e) {
+        fail("<code>" + ((e.reason && e.reason.message) || e.reason) + "</code>");
+      });
+
+      // If the app never announces itself, say so rather than doing nothing.
+      document.addEventListener("DOMContentLoaded", function () {
+        var btn = document.getElementById("enter-btn");
+        if (btn) btn.addEventListener("click", function () {
+          if (!booted) fail("The 3D scene is still loading, or it failed to start.");
+        });
+        setTimeout(function () { fail("Loading timed out."); }, 12000);
+      });
+    })();
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

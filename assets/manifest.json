@@ -1,0 +1,86 @@
+{
+  "bernabeu_old": {
+    "file": "assets/img/bernabeu_old.jpg",
+    "source": "File:Estadio Santiago Bernabeu - vista exterior.jpg"
+  },
+  "bernabeu_new": {
+    "file": "assets/img/bernabeu_new.jpg",
+    "source": "File:Construção do Estádio Santiago Bernabéu em 2023.jpg"
+  },
+  "copa_trophy": {
+    "file": "assets/img/copa_trophy.jpg",
+    "source": "File:Copa del Rey 1977 - IMG 20180606 175822 651.jpg"
+  },
+  "laliga_trophy": {
+    "file": "assets/img/laliga_trophy.jpg",
+    "source": "File:Ofrenda de la Liga y la Champions-34-L.Millán (52109279516).jpg"
+  },
+  "cr7": {
+    "file": "assets/img/cr7.jpg",
+    "source": "File:Cristiano Ronaldo Real Madrid.jpg"
+  },
+  "distefano": {
+    "file": "assets/img/distefano.jpg",
+    "source": "File:Alfredo Di Stéfano en Santamaria.jpg"
+  },
+  "kopa": {
+    "file": "assets/img/kopa.jpg",
+    "source": "File:Wereldelftal. Raymond Kopa, Bestanddeelnr 915-6595.jpg"
+  },
+  "figo": {
+    "file": "assets/img/figo.jpg",
+    "source": "File:L. Figo 2017.jpg"
+  },
+  "modric": {
+    "file": "assets/img/modric.jpg",
+    "source": "File:Luka Modrić at celebration after winning the 2018 UEFA Champions League Final (cropped).jpg"
+  },
+  "benzema": {
+    "file": "assets/img/benzema.jpg",
+    "source": "File:Karim Benzema during a photoshoot in 2020.jpg"
+  },
+  "fans": {
+    "file": "assets/img/fans.jpg",
+    "source": "File:Real Madrid fans at Santiago Bernabeu between the chreography vs. Bor. Dortmund.JPG"
+  },
+  "final_2016": {
+    "file": "assets/img/final_2016.jpg",
+    "source": "File:Aperitivo madrileño en la Champions (27380087205).jpg"
+  },
+  "ucl_trophy": {
+    "file": "assets/img/ucl_trophy.jpg",
+    "source": "File:Plaza del Oriente with decoration related to the 2019 Champions League final.jpg"
+  },
+  "ronaldo9": {
+    "file": "assets/img/ronaldo9.jpg",
+    "source": "File:Lula-Corinthians-2 (2009).jpg"
+  },
+  "cannavaro": {
+    "file": "assets/img/cannavaro.jpg",
+    "source": "File:Fabio Cannavaro in world cup 2006.jpg"
+  },
+  "final_2014": {
+    "file": "assets/img/final_2014.jpg",
+    "source": "File:Final Champions League 2014 Real Madrid - Atlético de Madrid (14081181609).jpg"
+  },
+  "final_2018": {
+    "file": "assets/img/final_2018.jpg",
+    "source": "File:Real Madrid celebration after winning the 2018 UEFA Champions League Final DSC 0157 (27533665997).jpg"
+  },
+  "final_2022": {
+    "file": "assets/img/final_2022.jpg",
+    "source": "File:Ofrenda de la Liga y la Champions-59-L.Millán (52108253452).jpg"
+  },
+  "final_1998": {
+    "file": "assets/img/final_1998.png",
+    "source": "File:Real Madrid vs Juventus 1998-05-20.png"
+  },
+  "cr7_portrait": {
+    "file": "assets/img/cr7_portrait.jpg",
+    "source": "File:Candidatura Ibérica para el Mundial 2018 Cristiano Ronaldo.JPG"
+  },
+  "cr7_face": {
+    "file": "assets/img/cr7_face.jpg",
+    "source": "derived crop of File:Cristiano Ronaldo Real Madrid.jpg (Haar face detection)"
+  }
+}
