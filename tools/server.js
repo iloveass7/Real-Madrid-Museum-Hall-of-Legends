@@ -28,7 +28,7 @@ const TYPES = {
 http
   .createServer((req, res) => {
     let path = decodeURIComponent(new URL(req.url, "http://x").pathname);
-    if (path === "/") path = "/index.html";
+    if (path === "/" || path.endsWith("/")) path = join(path, "index.html");
     const file = normalize(join(ROOT, path));
     if (!file.startsWith(ROOT) || !existsSync(file) || !statSync(file).isFile()) {
       res.writeHead(404).end("Not found");

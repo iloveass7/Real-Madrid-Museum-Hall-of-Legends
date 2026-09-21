@@ -132,7 +132,7 @@ graph TD
 ### 3D Rendering & Lighting Pipeline
 - **Tone Mapping**: ACESFilmic tone mapping (`exposure = 1.12`) ensures metallic highlights on gold and silver trophies don't blow out while preserving shadow detail.
 - **Shadow Mapping**: PCF Soft Shadow Maps (`PCFSoftShadowMap`) provide realistic contact shadows beneath pedestals, columns, and visitor feet.
-- **Environment Lighting**: Procedural PMREM environment map bounces cool wall tones, warm key panel light, and gold floor reflections onto PBR materials.
+- **Custom Material Lighting**: Hand-written gallery, metal, cloth, painting, and stone shaders provide diffuse/specular shading and metallic Fresnel highlights. The statue shader receives two animated spotlight uniforms.
 - **Layered Illumination**:
   - Cool gallery wash: Hemisphere light (`0xf2f6ff` / `0x2b2d33`) and ambient light (`0.18`).
   - Ceiling grid spotlights: 8 cool-white LED spotlights wash the floor runners.
@@ -146,7 +146,7 @@ To keep download sizes minimal while ensuring razor-sharp visuals, textures are 
 - **Brass & Gold Plaques**: Brushed metal gradients with engraved typography borders.
 
 ### Custom Vertex Shader Cloth Simulation
-The club banners in `src/world/flags.js` utilize custom vertex shader injection via Three.js's `onBeforeCompile`:
+The club banners use an explicit `AnimatedClothShader` in `src/world/shaders.js`:
 $$\Delta z = A_1 \sin(k_1 x + \omega_1 t) + A_2 \cos(k_2 x + \omega_2 t)$$
 Normals are calculated directly on the GPU from the partial derivatives:
 $$N = \text{normalize}\left(-\frac{\partial z}{\partial x}, -\frac{\partial z}{\partial y}, 1\right)$$
@@ -156,7 +156,7 @@ This ensures dynamic light reflections curve naturally across folds without CPU 
 In `src/world/statue.js`, the Cristiano Ronaldo monument combines:
 1. Mixamo humanoid rig (`Xbot.glb`) with joint rotations positioned into the "Siuu" stance.
 2. 3D scanned portrait geometry (`LeePerrySmith.glb`), modified at the neck junction, scaled to Ronaldo's jawline, and merged with hand-modeled quiff hair.
-3. A unified procedural weathered stone PBR shader with granular bump maps and marble stain veins.
+3. A custom weathered-stone shader with granular surface variation, marble stain veins, and moving spotlight highlights.
 
 ### Bounding-Box Collision System
 Colliders are derived directly from the physical geometry of scene objects via `THREE.Box3().setFromObject()`. Any element marked `solid: true` automatically registers in the collision tree, ensuring visitors cannot walk through walls, columns, pedestals, or trophy cases.
@@ -200,6 +200,7 @@ Real-Madrid-Museum/
 │       ├── exhibits.js      # Trophy wall, domestic pedestals, and Bernabéu painting
 │       ├── flags.js         # Animated cloth shader banners with club crest
 │       ├── museum.js        # Hall architecture (walls, floor, ceiling, columns, lighting)
+│       ├── shaders.js       # Custom gallery, metal, cloth, painting, and stone shaders
 │       ├── statue.js        # CR7 monument assembly, skeletal pose, and stone shaders
 │       ├── textures.js      # Procedural canvas texture generation engine
 │       └── trophies.js      # Accurate procedural 3D models for all four trophies

@@ -1,12 +1,9 @@
 // Waving club banners.
 //
-// The cloth is a finely-tessellated plane whose vertices are displaced in the
-// vertex shader (injected into MeshStandardMaterial, so the banners still take
-// the museum's lights and shadows). Normals are recomputed analytically from
-// the same wave, which is what makes the fabric read as cloth rather than as a
-// flat picture that wobbles. Textures are drawn large and sampled with
-// anisotropic linear filtering — no pixel-art look anywhere.
+// The finely-tessellated cloth is displaced by an explicit custom shader.
+// Analytic normals make the moving folds respond to the shader's lighting.
 import * as THREE from "three";
+import { createClothMaterial, createMetalMaterial } from "./shaders.js";
 
 const WHITE = "#ffffff";
 const NAVY = "#00317d";      // club blue
@@ -202,54 +199,10 @@ function bannerTexture(lib, key, variant) {
 /* cloth material                                                      */
 /* ------------------------------------------------------------------ */
 
-const clock = { t: 0 };
-const uniforms = [];
+const clothTime = { value: 0 };
 
 function clothMaterial(map, seed) {
-  const mat = new THREE.MeshStandardMaterial({
-    map, side: THREE.DoubleSide, roughness: 0.82, metalness: 0.0,
-  });
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = { value: 0 };
-    shader.uniforms.uSeed = { value: seed };
-    uniforms.push(shader.uniforms.uTime);
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `
-        #include <common>
-        uniform float uTime;
-        uniform float uSeed;
-        // hanging cloth: still at the top rod, freer toward the hem
-        vec3 wave(vec2 uv) {
-          float slack = pow(1.0 - uv.y, 1.35);
-          float edge  = 0.45 + 0.55 * abs(uv.x - 0.5) * 2.0;
-          float p1 = sin(uv.x * 7.0 + uv.y * 2.2 - uTime * 1.7 + uSeed);
-          float p2 = sin(uv.x * 3.1 - uv.y * 4.0 + uTime * 1.15 + uSeed * 1.7);
-          float z  = (p1 * 0.42 + p2 * 0.58) * slack * edge * 0.12;
-          // analytic slopes so the shading ripples with the cloth
-          float dx = (cos(uv.x * 7.0 + uv.y * 2.2 - uTime * 1.7 + uSeed) * 7.0 * 0.42
-                    + cos(uv.x * 3.1 - uv.y * 4.0 + uTime * 1.15 + uSeed * 1.7) * 3.1 * 0.58)
-                    * slack * edge * 0.12;
-          float dy = (cos(uv.x * 7.0 + uv.y * 2.2 - uTime * 1.7 + uSeed) * 2.2 * 0.42
-                    - cos(uv.x * 3.1 - uv.y * 4.0 + uTime * 1.15 + uSeed * 1.7) * 4.0 * 0.58)
-                    * slack * edge * 0.12;
-          return vec3(z, dx, dy);
-        }
-      `)
-      .replace("#include <beginnormal_vertex>", `
-        vec3 w0 = wave(uv);
-        vec3 objectNormal = normalize(vec3(-w0.y, -w0.z, 1.0));
-        #ifdef USE_TANGENT
-          vec3 objectTangent = vec3( tangent.xyz );
-        #endif
-      `)
-      .replace("#include <begin_vertex>", `
-        vec3 transformed = vec3(position);
-        transformed.z += w0.x;
-        // the hem swings slightly toward the viewer as it lifts
-        transformed.y -= abs(w0.x) * 0.25 * pow(1.0 - uv.y, 2.0);
-      `);
-  };
-  return mat;
+  return createClothMaterial(map, seed, clothTime);
 }
 
 /* ------------------------------------------------------------------ */
@@ -262,7 +215,7 @@ export function buildFlags(lib, ROOM) {
   const white = bannerTexture(lib, "banner_white", "white");
   const navy = bannerTexture(lib, "banner_navy", "navy");
 
-  const rodMat = new THREE.MeshStandardMaterial({ color: 0xc9a96a, metalness: 0.9, roughness: 0.28 });
+  const rodMat = createMetalMaterial({ color: 0xc9a96a, metalness: 0.9, roughness: 0.28 });
 
   let n = 0;
   const hang = (x, y, z, rotY, w = 1.5, h = 3.1, variant = "white") => {
@@ -317,8 +270,7 @@ export function buildFlags(lib, ROOM) {
   }
 
   function update(t) {
-    clock.t = t;
-    for (const u of uniforms) u.value = t;
+    clothTime.value = t;
   }
 
   return { group, update };

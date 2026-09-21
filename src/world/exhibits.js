@@ -1,16 +1,15 @@
-// Exhibits: UCL trophy wall, domestic trophies, Cristiano Ronaldo statue
-// (with animated spotlights), and the old/new Santiago Bernabéu painting.
+// UCL trophy wall, domestic trophies, and the old/new Bernabéu painting.
 import * as THREE from "three";
+import { createSurfaceMaterial, createMetalMaterial, createPaintingBlendMaterial } from "./shaders.js";
 import {
   createEuropeanCup, createLaLigaTrophy, createCopaTrophy, createSupercopaTrophy,
 } from "./trophies.js";
 
-const SILVER = { color: 0xdfe4ec, metalness: 1.0, roughness: 0.16 };
-const GOLD = { color: 0xd8b25c, metalness: 0.95, roughness: 0.28 };
 const MARBLE_DARK = { color: 0x17161c, roughness: 0.28, metalness: 0.25 };
 
 function mesh(geo, matProps, x = 0, y = 0, z = 0) {
-  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial(matProps));
+  const factory = (matProps.metalness ?? 0) > 0.5 ? createMetalMaterial : createSurfaceMaterial;
+  const m = new THREE.Mesh(geo, factory(matProps));
   m.position.set(x, y, z);
   return m;
 }
@@ -29,7 +28,7 @@ function pedestal(lib, w, h, d, title, sub) {
   // boxes were written out by hand
   g.userData.solid = true;
   g.name = `pedestal:${title}`;
-  const wood = new THREE.MeshStandardMaterial({ map: lib.wood(), roughness: 0.5 });
+  const wood = createSurfaceMaterial({ map: lib.wood(), roughness: 0.5 });
   const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wood);
   box.position.y = h / 2;
   box.castShadow = true; box.receiveShadow = true;
@@ -39,7 +38,7 @@ function pedestal(lib, w, h, d, title, sub) {
   g.add(cap);
   const plaque = new THREE.Mesh(
     new THREE.PlaneGeometry(Math.min(w - 0.15, 1.15), 0.3),
-    new THREE.MeshStandardMaterial({ map: lib.plaque(title, sub), roughness: 0.6 })
+    createSurfaceMaterial({ map: lib.plaque(title, sub), roughness: 0.6 })
   );
   plaque.position.set(0, h * 0.62, d / 2 + 0.012);
   g.add(plaque);
@@ -51,8 +50,7 @@ function pedestal(lib, w, h, d, title, sub) {
 export function buildUCLExhibit(lib, anchor) {
   const g = new THREE.Group();
   g.position.copy(anchor);
-  const wood = new THREE.MeshStandardMaterial({ map: lib.wood(), roughness: 0.5 });
-  const matGold = new THREE.MeshStandardMaterial({ color: 0xc9a96a, metalness: 0.85, roughness: 0.3 });
+  const wood = createSurfaceMaterial({ map: lib.wood(), roughness: 0.5 });
 
   // backboard
   const back = new THREE.Mesh(new THREE.BoxGeometry(15.4, 4.4, 0.22), wood);
@@ -69,7 +67,7 @@ export function buildUCLExhibit(lib, anchor) {
   // header
   const header = new THREE.Mesh(
     new THREE.PlaneGeometry(9.5, 0.85),
-    new THREE.MeshStandardMaterial({ map: lib.plaque("KINGS OF EUROPE", "15 × European Cup / UEFA Champions League"), roughness: 0.55 })
+    createSurfaceMaterial({ map: lib.plaque("KINGS OF EUROPE", "15 × European Cup / UEFA Champions League"), roughness: 0.55 })
   );
   header.position.set(0, 3.85, -0.62);
   g.add(header);
@@ -94,7 +92,7 @@ export function buildUCLExhibit(lib, anchor) {
       // year chip on shelf edge
       const chip = new THREE.Mesh(
         new THREE.PlaneGeometry(0.62, 0.16),
-        new THREE.MeshStandardMaterial({ map: lib.make(`chip${YEARS[idx]}`, 256, 64, (ctx, w, h) => {
+        createSurfaceMaterial({ map: lib.make(`chip${YEARS[idx]}`, 256, 64, (ctx, w, h) => {
           ctx.fillStyle = "#1c1508"; ctx.fillRect(0, 0, w, h);
           ctx.strokeStyle = "#c9a96a"; ctx.lineWidth = 5; ctx.strokeRect(3, 3, w - 6, h - 6);
           ctx.fillStyle = "#f0d489"; ctx.font = "700 40px Georgia, serif";
@@ -147,7 +145,7 @@ export function buildDomesticExhibit(lib, anchor) {
 
   const header = new THREE.Mesh(
     new THREE.PlaneGeometry(10.5, 0.8),
-    new THREE.MeshStandardMaterial({ map: lib.plaque("DOMESTIC HONOURS", "La Liga · Copa del Rey · Supercopa"), roughness: 0.55 })
+    createSurfaceMaterial({ map: lib.plaque("DOMESTIC HONOURS", "La Liga · Copa del Rey · Supercopa"), roughness: 0.55 })
   );
   header.position.set(0, 3.5, 0.85);
   header.rotation.y = Math.PI;
@@ -201,19 +199,13 @@ export function buildPainting(lib, anchor) {
   const texOld = lib.stadiumArt("old");
   const texNew = lib.stadiumArt("new");
 
-  const planeOld = new THREE.Mesh(
+  const paintingMaterial = createPaintingBlendMaterial(texOld, texNew);
+  const painting = new THREE.Mesh(
     new THREE.PlaneGeometry(3.6, 2.3),
-    new THREE.MeshStandardMaterial({ map: texOld, roughness: 0.72 })
+    paintingMaterial
   );
-  planeOld.position.z = 0.095;
-  g.add(planeOld);
-
-  const planeNew = new THREE.Mesh(
-    new THREE.PlaneGeometry(3.6, 2.3),
-    new THREE.MeshStandardMaterial({ map: texNew, roughness: 0.72, transparent: true, opacity: 0 })
-  );
-  planeNew.position.z = 0.105;
-  g.add(planeNew);
+  painting.position.z = 0.095;
+  g.add(painting);
 
   // glass sheen
   const glass = new THREE.Mesh(
@@ -225,7 +217,7 @@ export function buildPainting(lib, anchor) {
 
   const plaque = new THREE.Mesh(
     new THREE.PlaneGeometry(1.7, 0.42),
-    new THREE.MeshStandardMaterial({ map: lib.plaque("SANTIAGO BERNABÉU", "1947 → 2024 — touch to travel in time"), roughness: 0.6 })
+    createSurfaceMaterial({ map: lib.plaque("SANTIAGO BERNABÉU", "1947 → 2024 — touch to travel in time"), roughness: 0.6 })
   );
   plaque.position.set(0, -1.75, 0.05);
   g.add(plaque);
@@ -250,9 +242,7 @@ export function buildPainting(lib, anchor) {
     if (Math.abs(fade - tgt) > 0.001) {
       fade += Math.sign(tgt - fade) * dt * 1.6;
       fade = THREE.MathUtils.clamp(fade, 0, 1);
-      planeNew.material.opacity = fade;
-      planeOld.material.transparent = true;
-      planeOld.material.opacity = 1 - fade * 0.0; // new covers old; keep old fully opaque
+      paintingMaterial.uniforms.uBlend.value = fade;
       lamp.intensity = 14 + Math.sin(fade * Math.PI) * 26; // pulse while morphing
     }
   }

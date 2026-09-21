@@ -1,6 +1,7 @@
 // The visitor you see in eagle-eye view: a small figure in the home kit that
 // walks, turns to face the way you are moving, and is hidden in first person.
 import * as THREE from "three";
+import { createSurfaceMaterial } from "../world/shaders.js";
 
 const WHITE = 0xf3f4f7;
 const NAVY = 0x18255c;
@@ -10,7 +11,7 @@ const SOCK = 0xf3f4f7;
 const BOOT = 0x14161d;
 
 function mat(color, rough = 0.72) {
-  return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0.02 });
+  return createSurfaceMaterial({ color, roughness: rough, metalness: 0.02 });
 }
 
 /** A limb that pivots from its top joint, so it swings like a real one. */
@@ -96,7 +97,7 @@ export function createAvatar() {
   // a 7 on the back, because of course
   const seven = new THREE.Mesh(
     new THREE.PlaneGeometry(0.11, 0.15),
-    new THREE.MeshStandardMaterial({ color: NAVY, roughness: 0.8, transparent: true })
+    createSurfaceMaterial({ color: NAVY, roughness: 0.8, transparent: true })
   );
   seven.position.set(0, 1.14, -0.146);
   seven.rotation.y = Math.PI;

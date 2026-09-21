@@ -11,6 +11,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
+import { createSurfaceMaterial, createMetalMaterial, createStoneMaterial, createSpotlightBeamMaterial } from "./shaders.js";
 
 // resolved against this module so it works from any page depth
 const MODELS = new URL("../../assets/models/", import.meta.url).href;
@@ -61,8 +62,8 @@ function stoneMaps(lib) {
 
 export function stoneMaterial(lib, { color = 0xcbc4b4, rough = 0.86, bumpScale = 0.0016 } = {}) {
   const { bump, albedo } = stoneMaps(lib);
-  return new THREE.MeshStandardMaterial({
-    color, map: albedo, bumpMap: bump, bumpScale,
+  return createStoneMaterial({
+    color, map: albedo, detailMap: bump, detailStrength: Math.max(0.18, bumpScale * 150),
     roughness: rough, metalness: 0.02,
   });
 }
@@ -743,7 +744,7 @@ function assemble(figure, bodyGltf, headGltf, mats, lib, root3) {
 
   const crest = new THREE.Mesh(
     new THREE.CircleGeometry(0.042, 32),
-    new THREE.MeshStandardMaterial({ map: lib.crest(), transparent: true, roughness: 0.8, color: 0xbfb8a6 })
+    createSurfaceMaterial({ map: lib.crest(), transparent: true, roughness: 0.8, color: 0xbfb8a6 })
   );
   crest.position.set(-0.075, shirtBot + (shoulderY - shirtBot) * 0.84, backR - 0.006);
   crest.rotation.y = -0.35;
@@ -764,7 +765,8 @@ export function buildStatue(lib, anchor) {
 
   const MARBLE_DARK = { color: 0x17161c, roughness: 0.28, metalness: 0.25 };
   const mk = (geo, props, x = 0, y = 0, z = 0) => {
-    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial(props));
+    const factory = (props.metalness ?? 0) > 0.5 ? createMetalMaterial : createSurfaceMaterial;
+    const m = new THREE.Mesh(geo, factory(props));
     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
     return m;
   };
@@ -780,7 +782,7 @@ export function buildStatue(lib, anchor) {
   g.add(cap);
   const plaque = new THREE.Mesh(
     new THREE.PlaneGeometry(1.34, 0.36),
-    new THREE.MeshStandardMaterial({ map: lib.plaque("CRISTIANO RONALDO", "2009–2018 · 450 goals"), roughness: 0.6 })
+    createSurfaceMaterial({ map: lib.plaque("CRISTIANO RONALDO", "2009–2018 · 450 goals"), roughness: 0.6 })
   );
   plaque.position.set(0, 0.86, 0.805);
   g.add(plaque);
@@ -794,17 +796,25 @@ export function buildStatue(lib, anchor) {
 
   const stone = stoneMaterial(lib);
   const stoneKit = stoneMaterial(lib, { color: 0xd8d2c3, rough: 0.8 });
+  const statueShaderMaterials = new Set([stone, stoneKit]);
   const loader = new GLTFLoader();
 
-  const ready = Promise.all([
+  Promise.all([
     loader.loadAsync(MODELS + "Xbot.glb"),
     loader.loadAsync(MODELS + "LeePerrySmith.glb"),
   ]).then(([body, head]) => {
     assemble(figure, body, head, { stone, stoneKit }, lib, g);
+    // Include the separately created hair material in the moving light rig.
+    figure.traverse((o) => {
+      const materials = Array.isArray(o.material) ? o.material : [o.material];
+      for (const material of materials) {
+        if (material?.name === "StoneStatueShader") statueShaderMaterials.add(material);
+      }
+    });
   }).catch((e) => console.error("statue models failed:", e));
 
   /* ---------------- velvet rope ---------------- */
-  const postMat = new THREE.MeshStandardMaterial({ color: 0xd8b25c, metalness: 0.9, roughness: 0.3 });
+  const postMat = createMetalMaterial({ color: 0xd8b25c, metalness: 0.9, roughness: 0.3 });
   const postPos = [[-1.45, -1.45], [1.45, -1.45], [1.45, 1.45], [-1.45, 1.45]];
   for (const [x, z] of postPos) {
     const p = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.95, 12), postMat);
@@ -812,7 +822,7 @@ export function buildStatue(lib, anchor) {
     const knob = mk(new THREE.SphereGeometry(0.055, 12, 10), { color: 0xd8b25c, metalness: 0.9, roughness: 0.3 }, x, 0.97, z);
     g.add(knob);
   }
-  const ropeMat = new THREE.MeshStandardMaterial({ color: 0x7e1123, roughness: 0.75 });
+  const ropeMat = createSurfaceMaterial({ color: 0x7e1123, roughness: 0.75 });
   for (let i = 0; i < 4; i++) {
     const a = postPos[i], b = postPos[(i + 1) % 4];
     const curve = new THREE.QuadraticBezierCurve3(
@@ -823,7 +833,7 @@ export function buildStatue(lib, anchor) {
 
   /* ---------------- animated spotlights ---------------- */
   const keySpot = new THREE.SpotLight(0xfff1d2, 190, 24, Math.PI / 8, 0.45, 1.7);
-  keySpot.position.set(-3.6, 5.4, 3.2);
+  keySpot.position.set(0, 5.4, 2.1);
   keySpot.castShadow = true;
   keySpot.shadow.mapSize.set(1024, 1024);
   keySpot.shadow.bias = -0.0004;
@@ -833,6 +843,15 @@ export function buildStatue(lib, anchor) {
   target.position.set(0, 2.6, 0);
   g.add(keySpot, fillSpot, target);
   keySpot.target = target; fillSpot.target = target;
+
+  const beam = new THREE.Mesh(
+    new THREE.ConeGeometry(1, 1, 32, 1, true),
+    createSpotlightBeamMaterial(0xffd78c)
+  );
+  beam.name = "moving-statue-spotlight-beam";
+  beam.renderOrder = 2;
+  beam.raycast = () => {};
+  g.add(beam);
 
   for (const [x, z] of [[-1.9, 1.9], [1.9, -1.9]]) {
     g.add(mk(new THREE.CylinderGeometry(0.09, 0.12, 0.14, 12), { color: 0x222233, roughness: 0.6 }, x, 0.07, z));
@@ -846,13 +865,43 @@ export function buildStatue(lib, anchor) {
     new THREE.Box3(V(anchor.x - 0.95, 0, anchor.z - 0.95), V(anchor.x + 0.95, 4.4, anchor.z + 0.95)),
   ];
 
+  const spotWorldA = new THREE.Vector3();
+  const spotWorldB = new THREE.Vector3();
+  const targetWorld = new THREE.Vector3();
+  const beamAxis = new THREE.Vector3();
+  const up = new THREE.Vector3(0, 1, 0);
+
+  function syncShaderSpotlights() {
+    beamAxis.copy(keySpot.position).sub(target.position);
+    beam.position.copy(keySpot.position).add(target.position).multiplyScalar(0.5);
+    beam.quaternion.setFromUnitVectors(up, beamAxis.clone().normalize());
+    beam.scale.set(0.52, beamAxis.length(), 0.52);
+    keySpot.getWorldPosition(spotWorldA);
+    fillSpot.getWorldPosition(spotWorldB);
+    target.getWorldPosition(targetWorld);
+    for (const material of statueShaderMaterials) {
+      const u = material.uniforms;
+      u.uSpotEnabled.value = 1;
+      u.uSpotPositionA.value.copy(spotWorldA);
+      u.uSpotTargetA.value.copy(targetWorld);
+      u.uSpotColorA.value.copy(keySpot.color);
+      u.uSpotStrengthA.value = keySpot.intensity / 35;
+      u.uSpotPositionB.value.copy(spotWorldB);
+      u.uSpotTargetB.value.copy(targetWorld);
+      u.uSpotColorB.value.copy(fillSpot.color);
+      u.uSpotStrengthB.value = fillSpot.intensity / 45;
+    }
+  }
+
   function update(t) {
     const a = Math.sin(t) * 0.85, b = Math.cos(t * 0.77) * 0.85;
-    target.position.set(a * 0.55, 2.6 + Math.sin(t * 0.63) * 0.5, b * 0.55);
-    keySpot.position.set(-3.6 + Math.sin(t * 0.4) * 1.1, 5.2 + Math.sin(t * 0.31) * 0.5, 3.2 + Math.cos(t * 0.4) * 1.1);
+    // Sweep the focal point from the lower kit to the head, and side to side.
+    target.position.set(a * 0.5, 2.0 + (Math.sin(t * 0.63) + 1) * 0.7, b * 0.18);
+    keySpot.position.set(Math.sin(t * 0.47) * 0.85, 5.4, 2.1 + Math.cos(t * 0.37) * 0.25);
     fillSpot.position.set(3.4 + Math.cos(t * 0.47) * 1.1, 4.6 + Math.cos(t * 0.36) * 0.45, -2.6 + Math.sin(t * 0.47) * 1.1);
     keySpot.intensity = 175 + Math.sin(t * 2.1) * 35;
     fillSpot.intensity = 86 + Math.cos(t * 1.7) * 22;
+    syncShaderSpotlights();
   }
 
   return { group: g, hit, colliders, update };

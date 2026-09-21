@@ -1,6 +1,7 @@
 // Museum room: floor, walls, ceiling, entrance, columns, wall posters.
 // Room inner extents: x ∈ [-20, 20], z ∈ [-13, 13], ceiling y = 6.
 import * as THREE from "three";
+import { createSurfaceMaterial, createMetalMaterial } from "./shaders.js";
 
 export const ROOM = { w: 40, d: 26, h: 6, x0: -20, x1: 20, z0: -13, z1: 13 };
 
@@ -15,13 +16,13 @@ export function buildMuseum(scene, lib) {
   const texCarpet = lib.carpet();
   const texWood = lib.wood();
 
-  const matFloor = new THREE.MeshStandardMaterial({ map: texFloor, roughness: 0.25, metalness: 0.05 });
-  const matWall = new THREE.MeshStandardMaterial({ map: texWall, roughness: 0.9 });
-  const matCeil = new THREE.MeshStandardMaterial({ map: texCeil, roughness: 0.95 });
-  const matCarpet = new THREE.MeshStandardMaterial({ map: texCarpet, roughness: 0.98 });
-  const matWood = new THREE.MeshStandardMaterial({ map: texWood, roughness: 0.55 });
-  const matGold = new THREE.MeshStandardMaterial({ color: 0xc9a96a, metalness: 0.85, roughness: 0.3 });
-  const matMarbleDark = new THREE.MeshStandardMaterial({ color: 0x17161c, roughness: 0.3, metalness: 0.2 });
+  const matFloor = createSurfaceMaterial({ map: texFloor, roughness: 0.25, metalness: 0.05 });
+  const matWall = createSurfaceMaterial({ map: texWall, roughness: 0.9 });
+  const matCeil = createSurfaceMaterial({ map: texCeil, roughness: 0.95 });
+  const matCarpet = createSurfaceMaterial({ map: texCarpet, roughness: 0.98 });
+  const matWood = createSurfaceMaterial({ map: texWood, roughness: 0.55 });
+  const matGold = createMetalMaterial({ color: 0xc9a96a, metalness: 0.85, roughness: 0.3 });
+  const matMarbleDark = createSurfaceMaterial({ color: 0x17161c, roughness: 0.3, metalness: 0.2 });
 
   /* ---------------- floor / ceiling ---------------- */
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), matFloor);
@@ -66,7 +67,7 @@ export function buildMuseum(scene, lib) {
   /* ---------------- columns ---------------- */
   const colGeo = new THREE.CylinderGeometry(0.32, 0.38, ROOM.h, 20);
   const capGeo = new THREE.CylinderGeometry(0.48, 0.4, 0.22, 20);
-  const matCol = new THREE.MeshStandardMaterial({ color: 0xe4e3df, roughness: 0.45 });
+  const matCol = createSurfaceMaterial({ color: 0xe4e3df, roughness: 0.45 });
   const colPositions = [
     [-14, -9], [-14, 9], [-6, -11], [-6, 11],
     [0, -9], [0, 9], [18, -9], [18, 9],
@@ -131,7 +132,7 @@ export function buildMuseum(scene, lib) {
     group.add(frame);
     const face = new THREE.Mesh(
       new THREE.PlaneGeometry(w, h),
-      new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6 })
+      createSurfaceMaterial({ map: tex, roughness: 0.6 })
     );
     face.position.set(x, 2.6, z);
     face.rotation.y = rotY;

@@ -9,21 +9,22 @@
 // Each is a lathed body (so the profile is the design), with handles built as
 // flat ribbons extruded along a curve rather than plain torus sections.
 import * as THREE from "three";
+import { createMetalMaterial, createSurfaceMaterial } from "./shaders.js";
 
-const SILVER = { color: 0xeef2f7, metalness: 0.88, roughness: 0.24, envMapIntensity: 1.6 };
-const SILVER_DK = { color: 0xc4ccd8, metalness: 0.85, roughness: 0.32, envMapIntensity: 1.4 };
-const GOLD = { color: 0xe6c072, metalness: 0.92, roughness: 0.3, envMapIntensity: 1.5 };
+const SILVER = { color: 0xeef2f7, metalness: 0.88, roughness: 0.24 };
+const SILVER_DK = { color: 0xc4ccd8, metalness: 0.85, roughness: 0.32 };
+const GOLD = { color: 0xe6c072, metalness: 0.92, roughness: 0.3 };
 const MARBLE_DARK = { color: 0x15141a, roughness: 0.3, metalness: 0.25 };
 
 let matCache = null;
 function mats() {
   if (!matCache) {
     matCache = {
-      silver: new THREE.MeshStandardMaterial({ ...SILVER, side: THREE.DoubleSide }),
-      silverSolid: new THREE.MeshStandardMaterial(SILVER),
-      silverDk: new THREE.MeshStandardMaterial(SILVER_DK),
-      gold: new THREE.MeshStandardMaterial(GOLD),
-      base: new THREE.MeshStandardMaterial(MARBLE_DARK),
+      silver: createMetalMaterial({ ...SILVER, side: THREE.DoubleSide }),
+      silverSolid: createMetalMaterial(SILVER),
+      silverDk: createMetalMaterial(SILVER_DK),
+      gold: createMetalMaterial(GOLD),
+      base: createSurfaceMaterial(MARBLE_DARK),
     };
   }
   return matCache;

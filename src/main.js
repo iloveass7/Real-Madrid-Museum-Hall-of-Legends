@@ -29,26 +29,6 @@ scene.fog = new THREE.Fog(0x0a0c12, 26, 60);
 
 const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 90);
 
-/* environment reflections for the metals (procedural mini env) */
-{
-  const env = new THREE.Scene();
-  const geo = new THREE.BoxGeometry(1, 1, 1);
-  const mk = (c, i, x, y, z, sx = 1, sy = 1, sz = 1) => {
-    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c }));
-    m.material.color.multiplyScalar(i);
-    m.position.set(x, y, z); m.scale.set(sx, sy, sz);
-    env.add(m);
-  };
-  mk(0x8fa3bf, 0.5, 0, 0, -8, 14, 8);            // cool back wall
-  mk(0xfff1d0, 2.4, -4, 6, 2, 3, 0.4, 3);        // warm key panels
-  mk(0xfff1d0, 2.0, 5, 6, -3, 3, 0.4, 3);
-  mk(0xc9a96a, 1.1, 0, -6, 3, 8, 0.5, 2);        // gold floor bounce
-  mk(0x33415e, 0.9, -7, 0, 0, 0.5, 8, 8);
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(env, 0.09).texture;
-  pmrem.dispose();
-}
-
 /* ------------------------------------------------ world */
 const lib = new TextureLibrary(renderer);
 await lib.init();                    // photo manifest must load before textures are bound

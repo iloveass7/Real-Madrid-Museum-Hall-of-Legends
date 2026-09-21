@@ -2,11 +2,14 @@
 // walks the key camera positions, exercises interaction + magazine,
 // and saves screenshots to tools/shots/.
 import { chromium } from "playwright-core";
+import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const CHROME = process.env.CHROME_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const CHROME = process.env.CHROME_PATH || (process.platform === "win32"
+  ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+  : "/opt/pw-browsers/chromium-1194/chrome-linux/chrome");
 const SHOTS = fileURLToPath(new URL("./shots/", import.meta.url));
 mkdirSync(SHOTS, { recursive: true });
 
@@ -21,7 +24,12 @@ page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + 
 page.on("pageerror", (e) => errors.push("pageerror: " + e.message));
 
 await page.goto("http://localhost:5173/", { waitUntil: "networkidle" });
-await page.waitForFunction(() => window.__museum, null, { timeout: 20000 });
+await page.waitForFunction(() => window.__museum, null, { timeout: 20000 }).catch((error) => {
+  console.error(errors.join("\n") || "Museum did not initialize and the page emitted no captured error.");
+  throw error;
+});
+assert.equal(await page.locator("#splash button").count(), 1, "entry splash has one button");
+assert.equal(await page.locator("#splash a").count(), 0, "entry splash has no alternate-project link");
 await page.screenshot({ path: join(SHOTS, "1-splash.png") });
 
 // enter the museum (remove splash; pointer lock is flaky headless, warp instead)
@@ -41,6 +49,26 @@ async function shot(name, x, z, yaw, wait = 900, pitch = 0) {
 await shot("2-entrance-view.png", -14, -8.2, -Math.PI / 2 - 0.35);
 await shot("3-ucl-wall.png", 10, -7.5, 0, 1400);              // face north (-z) at the UCL wall
 await shot("4-statue.png", 14.5, 0, -Math.PI / 2, 1600);      // look east at statue
+await page.waitForFunction(() => {
+  let found = false;
+  window.__museum.scene.traverse((o) => {
+    if (o.isSkinnedMesh && o.material?.name === "StoneStatueShader") found = true;
+  });
+  return found;
+}, null, { timeout: 30000 });
+const spotlightMotion = await page.evaluate(() => {
+  let stone;
+  window.__museum.scene.traverse((o) => {
+    if (o.isSkinnedMesh && o.material?.name === "StoneStatueShader") stone = o.material;
+  });
+  const u = stone.uniforms;
+  const before = u.uSpotTargetA.value.clone();
+  window.__museum.step(1 / 60, 240);
+  return { enabled: u.uSpotEnabled.value, travel: before.distanceTo(u.uSpotTargetA.value), strength: u.uSpotStrengthA.value };
+});
+assert.equal(spotlightMotion.enabled, 1, "stone shader receives animated spotlights");
+assert.ok(spotlightMotion.travel > 0.1, "spotlight sweeps across the statue");
+assert.ok(spotlightMotion.strength > 0, "spotlight illuminates the statue");
 await shot("5-domestic.png", 10, 8.0, Math.PI, 900);           // look south at domestic
 await shot("6-painting.png", -16.2, 0, Math.PI / 2, 900);      // look west at painting
 await shot("11-statue-face.png", 16.0, 0, -Math.PI / 2, 1500, 0.18);   // close-up on the head
