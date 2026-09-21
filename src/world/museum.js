@@ -8,6 +8,7 @@ export function buildMuseum(scene, lib) {
   const group = new THREE.Group();
   const colliders = [];
 
+
   const texFloor = lib.marbleFloor();
   const texWall = lib.wall();
   const texCeil = lib.ceiling();
@@ -106,21 +107,9 @@ export function buildMuseum(scene, lib) {
     bar.position.set(s * 0.2, 1.65, 0.2);
     door.add(bar);
   }
-  // crest above door
-  const crestTex = lib.crest();
-  const crest = new THREE.Mesh(
-    new THREE.CircleGeometry(0.8, 48),
-    new THREE.MeshBasicMaterial({ map: crestTex, transparent: true })
-  );
-  crest.position.set(0, 4.4, 0.1);
-  door.add(crest);
-  const doorPlaque = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.6, 0.8),
-    new THREE.MeshStandardMaterial({ map: lib.plaque("ENTRANCE", "Hall of Legends"), roughness: 0.5 })
-  );
-  doorPlaque.position.set(0, 3.7, 0.09);
-  door.add(doorPlaque);
   group.add(door);
+
+
 
   /* ---------------- wall posters ---------------- */
   const posterDefs = [
@@ -150,20 +139,6 @@ export function buildMuseum(scene, lib) {
     group.add(face);
   }
 
-  // big crest medallions flanking the hall
-  for (const [x, z, rotY] of [[-14, ROOM.z1 - 0.3, Math.PI], [ROOM.x0 + 0.3, -5, Math.PI / 2]]) {
-    const m = new THREE.Mesh(
-      new THREE.CircleGeometry(1.1, 48),
-      new THREE.MeshBasicMaterial({ map: crestTex, transparent: true })
-    );
-    m.position.set(x, 4.1, z);
-    m.rotation.y = rotY;
-    group.add(m);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.06, 12, 48), matGold);
-    ring.position.copy(m.position);
-    ring.rotation.y = rotY;
-    group.add(ring);
-  }
 
   /* ---------------- ambient & general lighting ---------------- */
   // cool, neutral gallery wash — the warm gold spotlights on each exhibit

@@ -155,7 +155,7 @@ export function buildDomesticPages() {
   const defs = [
     { cup: LA_LIGA, svg: svgCup(120), slug: "laliga_trophy", sub: "Spanish League Championship" },
     { cup: COPA_DEL_REY, svg: svgCup(120), slug: "copa_trophy", sub: "Copa de S.M. el Rey" },
-    { cup: SUPERCOPA, svg: svgCup(120), slug: null, sub: "Spanish Super Cup" },
+    { cup: SUPERCOPA, svg: svgCup(120), slug: "spanish_super_cup", sub: "Spanish Super Cup" },
   ];
   return defs.map((d, i) => ({
     html: `

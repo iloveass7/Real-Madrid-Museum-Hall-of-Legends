@@ -92,10 +92,17 @@ export function drawCrest(ctx, cx, cy, r) {
 /* ------------------------------------------------------------------ */
 
 function bannerTexture(lib, key, variant) {
-  return lib.make(key, 768, 1536, (ctx, w, h) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 768; canvas.height = 1536;
+  const ctx = canvas.getContext("2d");
+
+  function drawBanner(logoImg) {
+    const w = canvas.width, h = canvas.height;
     const dark = variant === "navy";
     const field = dark ? "#0b1f4d" : "#f7f7f4";
     const ink = dark ? "#f2f4fb" : NAVY;
+
+    ctx.clearRect(0, 0, w, h);
 
     // cloth field with a soft vertical weave
     ctx.fillStyle = field; ctx.fillRect(0, 0, w, h);
@@ -128,10 +135,19 @@ function bannerTexture(lib, key, variant) {
     ctx.fillText("REAL MADRID C.F.", w / 2, 104);
     ctx.letterSpacing = "0px";
 
-    drawCrest(ctx, w / 2, h * 0.40, w * 0.29);
+    // Real Madrid logo — use the real PNG if loaded, else fall back to drawn crest
+    const logoSize = w * 0.58;
+    const lx = w / 2 - logoSize / 2;
+    const ly = h * 0.40 - logoSize / 2;
+    if (logoImg) {
+      ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+    } else {
+      drawCrest(ctx, w / 2, h * 0.40, w * 0.29);
+    }
 
     ctx.fillStyle = ink;
     ctx.font = '700 104px Georgia, serif';
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("HALA", w / 2, h * 0.645);
     ctx.fillText("MADRID", w / 2, h * 0.715);
     ctx.font = 'italic 46px Georgia, serif';
@@ -159,7 +175,27 @@ function bannerTexture(lib, key, variant) {
     ctx.letterSpacing = "6px";
     ctx.fillText("15 COPAS DE EUROPA", w / 2, h * 0.945);
     ctx.letterSpacing = "0px";
-  });
+  }
+
+  // Draw immediately with fallback drawn crest
+  drawBanner(null);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  // Load real logo and redraw
+  const logoImg = new Image();
+  logoImg.onload = () => {
+    drawBanner(logoImg);
+    texture.needsUpdate = true;
+  };
+  logoImg.onerror = () => { /* keep procedural crest */ };
+  logoImg.src = "assets/img/real_madrid_logo.png";
+
+  // Register in the lib registry so the waving cloth system gets the texture
+  lib.registry.set(key, { canvas, ctx, texture, w: 768, h: 1536, photoLoaded: false });
+
+  return texture;
 }
 
 /* ------------------------------------------------------------------ */
@@ -266,7 +302,10 @@ export function buildFlags(lib, ROOM) {
   // north and south walls, between the wall posters
   for (const x of [-17.2, -0.6, 6.4]) {
     hang(x, yTop - 1.55, ROOM.z0 + 0.35, 0, 1.5, 3.1, x === -0.6 ? "navy" : "white");
-    hang(x, yTop - 1.55, ROOM.z1 - 0.35, Math.PI, 1.5, 3.1, x === -0.6 ? "navy" : "white");
+    // skip the south-wall banner at x=6.4 — it overlaps the Domestic Honours exhibit
+    if (x !== 6.4) {
+      hang(x, yTop - 1.55, ROOM.z1 - 0.35, Math.PI, 1.5, 3.1, x === -0.6 ? "navy" : "white");
+    }
   }
   // flanking the statue on the east wall
   for (const z of [-4.4, 4.4]) {

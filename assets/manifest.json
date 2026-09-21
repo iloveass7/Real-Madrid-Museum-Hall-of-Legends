@@ -82,5 +82,55 @@
   "cr7_face": {
     "file": "assets/img/cr7_face.jpg",
     "source": "derived crop of File:Cristiano Ronaldo Real Madrid.jpg (Haar face detection)"
+  },
+  "real_madrid_logo": {
+    "file": "assets/img/real_madrid_logo.png",
+    "source": "File:Real_Madrid_CF.svg — Wikimedia Commons"
+  },
+  "/_comment_ucl_missing": "--- UCL finals without photos yet. Drop the image in assets/img/ and it will appear automatically ---",
+  "final_1956": {
+    "file": "assets/img/final_1956.jpg",
+    "source": "1956 European Cup Final — Real Madrid 4–3 Stade de Reims, Parc des Princes"
+  },
+  "final_1957": {
+    "file": "assets/img/final_1957.jpg",
+    "source": "1957 European Cup Final — Real Madrid 2–0 Fiorentina, Bernabéu"
+  },
+  "final_1958": {
+    "file": "assets/img/final_1958.jpg",
+    "source": "1958 European Cup Final — Real Madrid 3–2 AC Milan (a.e.t.), Heysel"
+  },
+  "final_1959": {
+    "file": "assets/img/final_1959.jpg",
+    "source": "1959 European Cup Final — Real Madrid 2–0 Stade de Reims, Stuttgart"
+  },
+  "final_1960": {
+    "file": "assets/img/final_1960.jpg",
+    "source": "1960 European Cup Final — Real Madrid 7–3 Eintracht Frankfurt, Hampden Park"
+  },
+  "final_1966": {
+    "file": "assets/img/final_1966.jpg",
+    "source": "1966 European Cup Final — Real Madrid 2–1 Partizan Belgrade, Heysel"
+  },
+  "final_2000": {
+    "file": "assets/img/final_2000.jpg",
+    "source": "2000 UEFA Champions League Final — Real Madrid 3–0 Valencia, Stade de France"
+  },
+  "final_2002": {
+    "file": "assets/img/final_2002.jpg",
+    "source": "2002 UEFA Champions League Final — Real Madrid 2–1 Bayer Leverkusen, Hampden Park"
+  },
+  "final_2017": {
+    "file": "assets/img/final_2017.jpg",
+    "source": "2017 UEFA Champions League Final — Real Madrid 4–1 Juventus, Millennium Stadium Cardiff"
+  },
+  "final_2024": {
+    "file": "assets/img/final_2024.jpg",
+    "source": "2024 UEFA Champions League Final — Real Madrid 2–0 Borussia Dortmund, Wembley"
+  },
+  "/_comment_domestic_missing": "--- Domestic trophies without photos yet ---",
+  "spanish_super_cup": {
+    "file": "assets/img/spanish_super_cup.jpg",
+    "source": "Supercopa de España — Real Madrid"
   }
 }

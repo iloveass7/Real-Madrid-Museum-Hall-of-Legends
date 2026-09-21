@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { TextureLibrary } from "./world/textures.js";
 import { buildMuseum, ROOM } from "./world/museum.js";
 import {
-  buildUCLExhibit, buildDomesticExhibit, buildPainting, createEuropeanCup,
+  buildUCLExhibit, buildDomesticExhibit, buildPainting,
 } from "./world/exhibits.js";
 import { buildStatue } from "./world/statue.js";
 import { buildFlags } from "./world/flags.js";
@@ -62,10 +62,7 @@ const flags = buildFlags(lib, ROOM);
 scene.add(flags.group);
 scene.add(ucl.group, domestic.group, statue.group, painting.group);
 
-// floating ambient cup above the entrance sign — a small welcoming beacon
-const doorCup = createEuropeanCup(0.42);
-doorCup.position.set(-14, 5.3, museum.anchors.door.z + 0.7);
-scene.add(doorCup);
+
 
 /** Collision boxes taken from the props themselves, so anything marked solid
  *  is solid — no hand-written box to forget (which is exactly how the
@@ -295,7 +292,6 @@ function step(dt) {
   statue.update(t, dt);
   flags.update(t);
   painting.update(dt);
-  doorCup.rotation.y = t * 0.6;
   updatePrompt();
 }
 

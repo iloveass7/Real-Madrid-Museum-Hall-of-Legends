@@ -2,7 +2,6 @@
 // canvas first (so the app always works), then real photos downloaded from
 // Wikimedia Commons are painted on top of the matching canvas when available.
 import * as THREE from "three";
-import { drawCrest } from "./flags.js";
 
 const GOLD = "#c9a96a";
 const GOLD_BRIGHT = "#f0d489";
@@ -322,12 +321,6 @@ export class TextureLibrary {
       vg.addColorStop(1, "rgba(120,110,88,.16)");
       ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
 
-      // crest watermark behind everything
-      ctx.save();
-      ctx.globalAlpha = 0.09;
-      drawCrest(ctx, w / 2, h * 0.585, w * 0.26);
-      ctx.restore();
-
       // frame rules
       ctx.strokeStyle = BLUE; ctx.lineWidth = 9;
       ctx.strokeRect(26, 26, w - 52, h - 52);
@@ -387,6 +380,23 @@ export class TextureLibrary {
       ctx.fillText("FUNDADO EN 1902", w / 2, h - 80);
       ctx.letterSpacing = "0px";
     });
+
+    // Paint the real logo as a watermark after the canvas is drawn
+    const _entry = this.registry.get(key);
+    if (_entry) {
+      const logoWm = new Image();
+      logoWm.onload = () => {
+        const { canvas: c, ctx: x, texture: t, w, h } = _entry;
+        x.save();
+        x.globalAlpha = 0.09;
+        const s = w * 0.52;
+        x.drawImage(logoWm, w / 2 - s / 2, h * 0.585 - s / 2, s, s);
+        x.restore();
+        t.needsUpdate = true;
+      };
+      logoWm.src = "assets/img/real_madrid_logo.png";
+    }
+
     if (photo) this.bindPhoto(key, photo, { overlay: drawTitleBand });
     return tex;
   }
@@ -512,8 +522,8 @@ export class TextureLibrary {
       ctx.fillStyle = "rgba(120,85,20,.55)";
       ctx.strokeStyle = "rgba(90,60,14,.8)"; ctx.lineWidth = 5;
       const centers = [[w * .5, h * .5], [w * .18, h * .3], [w * .82, h * .3],
-        [w * .18, h * .72], [w * .82, h * .72], [w * .5, h * .02], [w * .5, h * .98],
-        [w * .02, h * .5], [w * .98, h * .5]];
+      [w * .18, h * .72], [w * .82, h * .72], [w * .5, h * .02], [w * .5, h * .98],
+      [w * .02, h * .5], [w * .98, h * .5]];
       for (const [cx, cy] of centers) {
         pent(cx, cy, w * .105, 0);
         ctx.fill(); ctx.stroke();
@@ -532,7 +542,8 @@ export class TextureLibrary {
   }
 
   /** Generic trophy illustration used as fallback photo inside pages and walls. */
-  trophyCard(key, title, sub = "") {    return this.make(key, 768, 1024, (ctx, w, h) => {
+  trophyCard(key, title, sub = "") {
+    return this.make(key, 768, 1024, (ctx, w, h) => {
       const g = ctx.createRadialGradient(w / 2, h * .38, 60, w / 2, h * .45, h * .75);
       g.addColorStop(0, "#2a3350"); g.addColorStop(1, "#0b0f1e");
       ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
