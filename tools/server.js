@@ -5,7 +5,8 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = fileURLToPath(new URL(".", import.meta.url));
+// Point to the project root directory
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const PORT = process.env.PORT || 5173;
 
 const TYPES = {

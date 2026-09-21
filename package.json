@@ -4,7 +4,7 @@
   "description": "Interactive 3D Real Madrid museum — Three.js / WebGL FPS experience",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "start": "node tools/server.js",
     "assets": "python tools/download_assets.py"
   },
   "license": "MIT",
